@@ -1,0 +1,76 @@
+version: '3.8'
+
+services:
+  sqlite:
+    image: localhost:5000/eventplatform-sqlite:latest
+    build:
+      context: ./sqlite
+    volumes:
+      - ./db:/dbdata:ro
+    networks:
+      - event_net
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: none
+
+  frontend:
+    image: localhost:5000/eventplatform-frontend:latest
+    build:
+      context: ./frontend
+    networks:
+      - event_net
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+
+  mailer:
+    image: localhost:5000/eventplatform-mailer:latest
+    build:
+      context: ./mailer
+    networks:
+      - event_net
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+
+  backend:
+    image: localhost:5000/eventplatform-backend:latest
+    build:
+      context: ./backend
+    volumes:
+      - ./db:/app/data
+    environment:
+      - NOTIFIER_URL=http://mailer:5001/send-ticket
+    networks:
+      - event_net
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+    depends_on:
+      - frontend
+      - sqlite
+      - mailer
+
+  proxy:
+    image: localhost:5000/eventplatform-proxy:latest
+    build:
+      context: ./proxy
+    ports:
+      - "80:80"
+    networks:
+      - event_net
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+    depends_on:
+      - backend
+      - frontend
+
+networks:
+  event_net:
+    driver: overlay
