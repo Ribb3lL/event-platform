@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <title>EventHub — Платформа онлайн-регистрации</title>
+    <link rel="stylesheet" href="/static/style.css" />
+  </head>
+  <body>
+    <header class="header">
+      <div class="container">
+        <h1>EventHub</h1>
+        <p>Управление событиями и регистрация участников</p>
+      </div>
+    </header>
+
+    <main class="container">
+      {% with messages = get_flashed_messages(with_categories=true) %} {% if
+      messages %} {% for category, message in messages %}
+      <div class="alert alert-{{ category }}">{{ message }}</div>
+      {% endfor %} {% endif %} {% endwith %}
+
+      <h2>Список актуальных событий</h2>
+      <div class="events-grid">
+        {% for event in events %}
+        <div class="event-card">
+          <h3>{{ event.title }}</h3>
+          <p><strong>Дата:</strong> {{ event.date }}</p>
+          <p><strong>Место:</strong> {{ event.location }}</p>
+          <p>{{ event.description }}</p>
+          <p class="seats">
+            Свободно мест: <strong>{{ event.seats_available }}</strong> из {{
+            event.seats_total }}
+          </p>
+
+          {% if event.seats_available > 0 %}
+          <form action="/register" method="POST" class="reg-form">
+            <input type="hidden" name="event_id" value="{{ event.id }}" />
+            <input
+              type="text"
+              name="full_name"
+              placeholder="Ваше ФИО"
+              required
+            />
+            <input type="email" name="email" placeholder="Email" required />
+            <input type="tel" name="phone" placeholder="Телефон" required />
+            <button type="submit" class="btn btn-primary">
+              Зарегистрироваться
+            </button>
+          </form>
+          {% else %}
+          <div class="badge-full">Регистрация завершена</div>
+          {% endif %}
+        </div>
+        {% endfor %}
+      </div>
+    </main>
+
+    <footer class="footer">
+      <p>&copy; 2026 РТУ МИРЭА, ИИТ, Филиппов М.В., ИКБО-18-25</p>
+    </footer>
+  </body>
+</html>
